@@ -1,13 +1,13 @@
 {
- "name": "Fingerzeig",
- "short_name": "Fingerzeig",
+ "name": "Friddle",
+ "short_name": "Friddle",
  "description": "Griffbilder für die Geige und Fingersätze für Notenblätter",
  "lang": "de",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
- "background_color": "#121116",
- "theme_color": "#121116",
+ "background_color": "#0C0C0C",
+ "theme_color": "#0C0C0C",
  "icons": [
   {
    "src": "icon-192.png",
