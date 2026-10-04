@@ -109,16 +109,35 @@ p { margin: 0; }
 .chip { display: inline-block; background: var(--blue); color: #FFFFFF; font-weight: 900; font-size: 18px; padding: 5px 9px; line-height: 1; white-space: nowrap; }
 .step { background: var(--ink); color: var(--bg); border: 0; font-weight: 800; font-size: 26px; padding: 0; }
 .step:disabled { opacity: .3; cursor: default; }
-.stage { flex: 1; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; min-height: 330px; }
+.stage { flex: 1; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; min-height: 200px; }
 .rail { display: flex; flex-direction: column; gap: 4px; min-height: 0; }
 .rail-label { flex: none; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; }
-.rail button { flex: 1; min-height: 40px; background: none; border: 2px solid var(--ink); font-weight: 800; font-size: 18px; padding: 0; }
+.rail button { flex: 1; min-height: 30px; background: none; border: 2px solid var(--ink); font-weight: 800; font-size: 18px; padding: 0; }
 .rail button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 900; }
 .board { position: relative; min-width: 0; min-height: 0; }
 .board svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; font-family: var(--font); }
 
-/* Darunter: Vorzeichen, Tabelle, Hinweise */
+/* Tabelle und Hinweise: eingeklappt hinter einem Knopf am unteren Rand. Solange er zu ist, gibt es nichts zum Blättern. */
+.more-btn { flex: none; height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px; background: none; border: 2px solid var(--ink); font-weight: 800; font-size: 16px; text-align: left; scroll-margin-top: calc(68px + env(safe-area-inset-top)); }
+.more-btn svg { width: 20px; height: 20px; flex: none; transition: transform .28s cubic-bezier(.2, .75, .25, 1); }
+.more-btn[aria-expanded="true"] { background: var(--ink); color: var(--bg); font-weight: 900; }
+.more-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .more-btn svg { transition: none; } }
+.more-wrap { display: none; }
+.more-wrap.open { display: block; }
 .more { padding: 4px 20px 36px; display: flex; flex-direction: column; gap: 22px; }
+/* niedrige Anzeige: Tonart und Abstände kleiner, damit das Griffbild seinen Platz behält */
+@media (max-height: 700px) and (max-width: 759px) {
+  .view-griff .first { padding-top: 14px; padding-bottom: 14px; gap: 12px; }
+  .view-griff .hero-key { min-height: 71px; gap: 12px; }
+  .view-griff .hero-letter { font-size: calc(96px * var(--k, 1)); }
+  .view-griff .hero-letter[data-len="2"] { font-size: calc(78px * var(--k, 1)); }
+  .view-griff .hero-letter[data-len="3"] { font-size: calc(58px * var(--k, 1)); }
+  .view-griff .hero-text { gap: 4px; }
+  .view-griff .hero-mode { font-size: calc(30px * var(--m, 1)); }
+  .view-griff .hero-minor { font-size: 16px; }
+  .view-griff .chip { font-size: 16px; padding: 4px 8px; }
+}
 .sig-line { font-weight: 600; font-size: 16px; }
 .sig-line b { font-weight: 900; }
 table { border-collapse: collapse; width: 100%; }
@@ -163,10 +182,41 @@ table { border-collapse: collapse; width: 100%; }
 @media (min-width: 900px), (min-width: 760px) and (orientation: landscape) {
   .view-griff { display: grid; grid-template-columns: minmax(380px, 460px) minmax(0, 1fr); gap: 0 28px; width: 100%; max-width: 1160px; margin: 0 auto; align-items: start; }
   .view-griff .first { position: sticky; top: 56px; }
+  .view-griff .stage { min-height: 330px; }
+  /* breit: Tabelle und Hinweise stehen immer rechts daneben, der Knopf entfällt */
+  .more-btn { display: none; }
+  .more-wrap { display: block; }
   .more { padding: 24px 20px 36px 0; }
   .ftable .pill { font-size: 15px; }
 }
+/* Handy quer (sehr niedrige Anzeige): Griffbild links über die ganze Höhe, rechts Tonart, Lage als Zeile und der Knopf. Auch hier nichts zum Blättern. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .view-griff { display: flex; flex-direction: column; align-items: stretch; max-width: none; }
+  .view-griff .first { position: static; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 12px 24px; padding: 12px 20px; min-height: 0; height: calc(100vh - var(--top) - env(safe-area-inset-top) - env(safe-area-inset-bottom)); height: calc(100dvh - var(--top) - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .view-griff .stage { display: contents; }
+  .view-griff .board { grid-column: 1; grid-row: 1 / -1; width: calc((100vh - var(--top) - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * .8); width: calc((100dvh - var(--top) - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * .8); }
+  .view-griff .hero { grid-column: 2; grid-row: 1; }
+  .view-griff .hero-key { min-height: 71px; gap: 12px; }
+  .view-griff .hero-letter { font-size: calc(96px * var(--k, 1)); }
+  .view-griff .hero-letter[data-len="2"] { font-size: calc(78px * var(--k, 1)); }
+  .view-griff .hero-letter[data-len="3"] { font-size: calc(58px * var(--k, 1)); }
+  .view-griff .hero-text { gap: 4px; }
+  .view-griff .hero-mode { font-size: calc(30px * var(--m, 1)); }
+  .view-griff .hero-minor { font-size: 16px; }
+  .view-griff .chip { font-size: 16px; padding: 4px 8px; }
+  .view-griff .rail { grid-column: 2; grid-row: 2; flex-direction: row; flex-wrap: wrap; height: auto !important; }
+  .view-griff .rail-label { flex: 0 0 100%; height: auto !important; justify-content: flex-start; line-height: 1.1; }
+  .view-griff .rail button { height: 44px; min-height: 44px; }
+  .more-btn { display: flex; grid-column: 2; grid-row: 4; }
+  .more-wrap { display: none; }
+  .more-wrap.open { display: block; }
+  .more { padding: 4px 20px 36px; }
+  .bar { height: 54px; }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 720px) { .bar-name { display: none; } }
 @media (max-width: 899px) { .ftable .wide { display: none; } }
+@media (max-width: 480px) { .ftable th, .ftable td { padding-left: 2px; padding-right: 2px; } .ftable .pill { padding: 3px 5px; font-size: 13px; } }
+@media (max-width: 350px) { .ftable .pill { padding: 3px; font-size: 12px; } .ftable tbody th { padding-right: 4px; } }
 /* Reiter und Bereich „Noten beschriften" (Plakat-Gestaltung, gehört zu den Regeln der Seite) */
 :root { --top: 106px; --frame: #DAD7CE; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --frame: #1E1E1E; } }
@@ -293,6 +343,14 @@ table { border-collapse: collapse; width: 100%; }
   .noten-links { margin: -4px 0 12px; flex-direction: column; align-items: flex-start; }
 }
 @media (min-width: 900px) and (pointer: fine) { .noten-links label, .noten-links button, .noten-links a { min-height: 34px; } }
+/* Handy quer: die Reiter rücken in die Kopfleiste, damit die Höhe dem Inhalt bleibt */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --top: 56px; }
+  .tabs { position: fixed; z-index: 21; top: env(safe-area-inset-top); left: 50%; transform: translateX(-50%); padding: 0; gap: 22px; }
+  .tab-btn { height: 54px; padding-top: 5px; border-bottom-width: 5px; color: #B9B6AE; }
+  .tab-btn[aria-pressed="true"] { color: var(--bar-ink); border-bottom-color: var(--bar-ink); }
+}
+@media (orientation: landscape) and (max-height: 520px) and (hover: hover) { .tab-btn:hover { color: var(--bar-ink); } }
 </style>
 
 <div class="app" id="app">
@@ -314,7 +372,7 @@ table { border-collapse: collapse; width: 100%; }
           </select>
           <small>Automatisch: 4. Finger, wenn kein Saitenwechsel nötig ist.</small>
         </div>
-        <div class="menu-foot">Friddle · Stand 04.10.2026, 09:18 Uhr</div>
+        <div class="menu-foot">Friddle · Stand 04.10.2026, 09:45 Uhr</div>
       </div>
     </div>
   </header>
@@ -340,7 +398,9 @@ table { border-collapse: collapse; width: 100%; }
         <div class="rail" id="pick-lage" role="group" aria-label="Lage wählen"></div>
         <div class="board" id="board"></div>
       </div>
+      <button type="button" class="more-btn" id="more-btn" aria-expanded="false" aria-controls="more">Tabelle und Hinweise<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.5 10 13.5 17 6.5" fill="none" stroke="currentColor" stroke-width="3.2"/></svg></button>
     </section>
+    <div class="more-wrap" id="more">
     <section class="more">
       <p class="sig-line" id="key-sig"></p>
       <div class="ftable-wrap">
@@ -348,6 +408,7 @@ table { border-collapse: collapse; width: 100%; }
       </div>
       <ul class="hints" id="hints"></ul>
     </section>
+    </div>
   </main>
   <main class="view view-noten is-empty" id="view-noten" hidden>
     <section class="first">
@@ -676,7 +737,7 @@ function keyData(f, p) {
   // Griffbild in den vorhandenen Platz zeichnen (wird bei jeder Größenänderung wiederholt)
   var drawn = '';
   function drawBoard(force) {
-    var box = $('board'), stage = box.parentNode, w = box.clientWidth, h = stage.clientHeight;
+    var box = $('board'), w = box.clientWidth, h = box.clientHeight;
     if (!w || !h) return;
     var id = curF + '/' + curP + '/' + w + '/' + h;
     if (!force && id === drawn) return;
@@ -724,11 +785,28 @@ function keyData(f, p) {
   $('pick-lage').addEventListener('click', function (e) { var b = e.target.closest('[data-p]'); if (b) select(curF, +b.dataset.p); });
   $('key-flat').addEventListener('click', function () { if (curF > -7) select(curF - 1, curP); });
   $('key-sharp').addEventListener('click', function () { if (curF < 7) select(curF + 1, curP); });
+  // Tabelle und Hinweise auf- und zuklappen. Aufgeklappt rückt der Knopf nach oben, zugeklappt geht es zurück zum Griffbild.
+  var moreBtn = $('more-btn'), moreWrap = $('more'), moreTimer = 0;
+  function setMore(on) {
+    var calm = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    clearTimeout(moreTimer);
+    moreBtn.setAttribute('aria-expanded', String(on));
+    if (on) {
+      moreWrap.classList.add('open');
+      window.requestAnimationFrame(function () { moreBtn.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' }); });
+    } else if (calm || window.scrollY < 2) {
+      moreWrap.classList.remove('open'); window.scrollTo(0, 0);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      moreTimer = setTimeout(function () { moreWrap.classList.remove('open'); }, 450);
+    }
+  }
+  moreBtn.addEventListener('click', function () { setMore(moreBtn.getAttribute('aria-expanded') !== 'true'); });
   var start = initial();
   select(start[0], start[1]);
   // neu einpassen, wenn sich der Platz ändert (Fenstergröße, Handy gedreht, Bereich eingeblendet)
   var again = function () { window.requestAnimationFrame(function () { fitHero($('key-letter').parentNode); drawBoard(false); }); };
-  if (window.ResizeObserver) new ResizeObserver(again).observe($('board').parentNode);
+  if (window.ResizeObserver) new ResizeObserver(again).observe($('board'));
   window.addEventListener('resize', again);
   window.FriddleGriff = { redraw: again, fitHero: fitHero };
 })();

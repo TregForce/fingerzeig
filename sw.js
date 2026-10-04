@@ -1,5 +1,5 @@
 // Friddle: speichert die App auf dem Gerät, damit sie ohne Internet startet. Eine neue Fassung (anderer Stempel) ersetzt die alte beim nächsten Start.
-const CACHE = 'friddle-475c937e49';
+const CACHE = 'friddle-695a500bde';
 const FILES = ["index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 // beim Einrichten immer frisch vom Server holen (nicht aus dem Zwischenspeicher des Browsers)
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'].concat(FILES).map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting())); });
