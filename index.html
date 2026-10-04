@@ -208,6 +208,14 @@ table { border-collapse: collapse; width: 100%; }
             <option value="four">Immer 4. Finger</option>
           </select>
         </label>
+        <label class="field" for="noten-size"><span class="cap">Größe der Fingersätze</span>
+          <select id="noten-size">
+            <option value="klein">Klein (wie in gedruckten Noten)</option>
+            <option value="mittel">Mittel</option>
+            <option value="gross" selected>Groß (gut lesbar auf dem Notenständer)</option>
+            <option value="riesig">Sehr groß</option>
+          </select>
+        </label>
         <label for="noten-every"><input type="checkbox" id="noten-every"><span>Jede Note beschriften, auch gebundene und direkt wiederholte</span></label>
         <label for="noten-strip"><input type="checkbox" id="noten-strip"><span>Handschrift entfernen (dicke Striche, z. B. aus GoodNotes; nur bei PDFs aus dem Notensatzprogramm)</span></label>
       </div>
@@ -224,11 +232,12 @@ table { border-collapse: collapse; width: 100%; }
         <button type="button" id="noten-undo" disabled>Rückgängig</button>
         <button type="button" id="noten-reset" disabled>Alle Korrekturen verwerfen</button>
         <span class="noten-zoom" role="group" aria-label="Größe der Vorschau"><button type="button" id="noten-zoom-out" aria-label="Vorschau kleiner">−</button><button type="button" id="noten-zoom-in" aria-label="Vorschau größer">+</button></span>
-        <span class="only-mouse">Stimmt etwas nicht? Fingersatz anklicken und ändern oder löschen, mit der Maus an eine andere Stelle ziehen. Gestrichelt umrandet ist, was du geändert hast (der Rahmen wird nicht gespeichert). Gespeichert wird, was du hier siehst.</span>
-        <span class="only-touch">Stimmt etwas nicht? Fingersatz antippen und ändern oder löschen, mit dem Finger an eine andere Stelle ziehen. Mit + wird die Vorschau größer. Gestrichelt umrandet ist, was du geändert hast (der Rahmen wird nicht gespeichert).</span>
+        <span class="only-mouse">Stimmt etwas nicht? Fingersatz anklicken und ändern oder löschen, mit der Maus an eine andere Stelle ziehen. Gestrichelt umrandet ist, was du geändert hast (der Rahmen wird nicht gespeichert). Gespeichert wird, was du hier siehst. Vergrößern: + und − oder Strg + Mausrad.</span>
+        <span class="only-touch">Zwei Finger: vergrößern. Ein Finger: verschieben. Doppelt tippen: hinein und zurück. Fingersatz antippen: ändern oder löschen, danach lässt er sich ziehen.</span>
       </div>
-      <div class="noten-pages" id="noten-pages"></div>
+      <div class="noten-pages" id="noten-pages"><div class="noten-inner" id="noten-inner"></div></div>
     </div>
+    <p class="noten-version">Fingerzeig · Stand 04.10.2026, 01:23 Uhr</p>
   </div>
 </div>
 
@@ -538,8 +547,9 @@ function keyData(f, p) {
 .noten-actions a { font-weight: 700; text-decoration: none; border-radius: 8px; padding: 9px 16px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
 .noten-actions a.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .noten-actions span { color: var(--muted); font-size: 14px; }
-.noten-pages { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--muted); min-height: 120px; overflow: auto; -webkit-overflow-scrolling: touch; }
-.noten-page { display: block; height: auto; background: #fff; border-radius: 4px; box-shadow: 0 1px 6px rgba(0, 0, 0, .35); }
+.noten-pages { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--muted); min-height: 120px; overflow: auto; -webkit-overflow-scrolling: touch; }
+.noten-inner { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; width: max-content; min-width: 100%; }
+.noten-page { display: block; width: 100%; height: 100%; background: #fff; border-radius: 4px; box-shadow: 0 1px 6px rgba(0, 0, 0, .35); }
 .noten-drop.busy { opacity: .6; pointer-events: none; }
 @media (max-width: 780px) { .noten-load { grid-template-columns: minmax(0, 1fr); } }
 .noten-editbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -549,11 +559,11 @@ function keyData(f, p) {
 .noten-editbar button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .noten-editbar span { color: var(--muted); font-size: 14px; flex: 1 1 260px; }
 .noten-pagewrap { position: relative; flex: none; margin: 0 auto; }
-.noten-layer { position: absolute; left: 0; top: 0; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.noten-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .noten-layer.adding { cursor: crosshair; }
-.noten-lab { cursor: pointer; outline: none; touch-action: none; }
+.noten-lab { cursor: pointer; outline: none; }
 .noten-lab text { font-family: Arial, Helvetica, sans-serif; font-weight: 700; }
-.noten-lab .hit { fill: transparent; stroke: transparent; stroke-width: 1.5; }
+.noten-lab .hit { fill: transparent; stroke: transparent; stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .noten-lab:hover .hit { fill: rgba(26, 92, 199, .12); }
 .noten-lab.changed .hit { stroke: rgba(26, 92, 199, .45); stroke-dasharray: 3 2; }
 .noten-lab.sel .hit { fill: rgba(26, 92, 199, .16); stroke: rgb(26, 92, 199); stroke-dasharray: none; }
@@ -573,12 +583,17 @@ function keyData(f, p) {
   .only-mouse { display: none !important; }
   .noten-pop button { min-height: 42px; min-width: 40px; font-size: 17px; }
   .noten-editbar button, .noten-actions a { padding-top: 11px; padding-bottom: 11px; }
+  /* Vorschau als Ausschnitt: mit einem Finger in alle Richtungen verschieben, mit zwei Fingern vergrößern (macht das Programm selbst) */
+  .noten-pages { max-height: 78vh; max-height: 78dvh; touch-action: pan-x pan-y; }
+  .noten-lab:hover .hit { fill: transparent; }
+  .noten-lab.sel:hover .hit { fill: rgba(26, 92, 199, .16); }
 }
 @media (max-width: 600px) {
   .noten-drop, .noten-opts { padding: 16px; }
   .noten-pages { padding: 8px; }
   .tabs { position: sticky; top: 0; z-index: 6; background: var(--bg); padding: 6px 0; }
 }
+.noten-version { margin: 0; color: var(--muted); font-size: 12px; opacity: .75; }
 </style>
 <script type="text/plain" id="pdfjs-main">/**
  * @licstart The following is the entire license notice for the
@@ -1767,8 +1782,19 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
   // Fingersätze einer Seite setzen. page = { notes, free(x0, y0, x1, y1) } in PDF-Koordinaten (y nach oben).
   // free() sagt, ob ein Kasten frei von Notenbild und Text ist.
   // Ergebnis: Liste { x (Mitte), y (Grundlinie), text, state, fs, note (Nummer der Note auf der Seite) }
+  // Größe: immer im Verhältnis zum Abstand der Notenlinien (nicht in festen Punkten), damit sie auch auf großen Seiten,
+  // Nahaufnahmen und Handy-Scans zum Notenbild passt. Untergrenze: Größe auf einem A4-Ausdruck. page.size = [Breite, Höhe] in Punkten.
+  var SIZES = { klein: 1.95, mittel: 2.4, gross: 2.9, riesig: 3.5 };
+  function sizeFactor(opts) { return SIZES[opts && opts.size] || SIZES.gross; }
+  function printScale(size) {
+    if (!size || !(size[0] > 0) || !(size[1] > 0)) return 1;
+    return Math.min(595.28 / Math.min(size[0], size[1]), 841.89 / Math.max(size[0], size[1]));
+  }
   function pageLabels(page, opts, stats) {
     var fingers = assign(page.notes, opts.open || 'auto'), labels = [], prev = null, placed = [];
+    var rel = sizeFactor(opts), ps = printScale(page.size), minFs = 6.5 * (rel / SIZES.klein) / ps;
+    // 1. Welche Noten bekommen einen Fingersatz, und wie breit ist er (halbe Breite je Schriftgröße: Ziffer, ggf. Pfeil, etwas Luft)?
+    var todo = [];
     page.notes.forEach(function (n, i) {
       var f = fingers[i];
       var same = prev && prev.system === n.system && prev.dia === n.dia && prev.alter === n.alter;
@@ -1777,19 +1803,46 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
       if (!f) stats.unknown++;
       stats.list.push({ dia: n.dia, alter: n.alter, label: f ? f.finger + (f.state === 'low' ? 'v' : f.state === 'high' ? '^' : '') : '?', same: !!same, page: stats.pages, system: n.system, x: n.x, y: n.y });
       if (same && !opts.every) return;                                 // gebunden oder direkt wiederholt
-      var fs = Math.max(6.5, Math.min(12, 1.95 * n.sp)), hw = 0.62 * fs, step = 0.45 * fs;
-      var y = Math.max(n.top + 1.3 * n.sp, n.y + 1.5 * n.sp);
-      var blocked = function (yy) {
-        var x0 = n.x - hw, x1 = n.x + hw, y0 = yy - 0.12 * fs, y1 = yy + 0.86 * fs;
-        if (placed.some(function (b) { return b[0] < x1 && b[2] > x0 && b[1] < y1 && b[3] > y0; })) return true;
-        return !page.free(x0, y0, x1, y1);
-      };
-      // nach oben ausweichen, bis die Stelle frei ist; in sehr dichten Stellen lieber nah an der Note über Notenbild schreiben
-      // als weit weg (nur anderen Fingersätzen wird immer ausgewichen)
-      var y0 = y, near = null, t;
+      todo.push({ n: n, f: f, i: i, wRel: ((f ? 0.556 : 0.611) + (f && f.state !== 'norm' ? 0.52 : 0)) / 2 + 0.07 });
+    });
+    // 2. Größe: so groß wie gewünscht, aber nur so groß, dass Nachbarn nebeneinander passen (in dichten Läufen also einheitlich kleiner,
+    //    nie kleiner als die Größe „klein“)
+    todo.forEach(function (t, k) {
+      var n = t.n, want = Math.max(minFs, rel * n.sp), floor = Math.min(want, Math.max(6.5 / ps, SIZES.klein * n.sp));
+      [todo[k - 1], todo[k + 1]].forEach(function (o) {
+        if (!o || o.n.system !== n.system) return;
+        var gap = Math.abs(o.n.x - n.x);
+        if (gap > 0.5 * n.sp) want = Math.min(want, gap / (t.wRel + o.wRel));      // (Akkordtöne übereinander zählen hier nicht)
+      });
+      t.want = Math.max(floor, want); t.floor = floor;
+    });
+    // 3. Platz suchen
+    todo.forEach(function (t) {
+      var n = t.n, f = t.f, i = t.i, want = t.want, floor = t.floor, wRel = t.wRel;
+      var fs = want, hw, step, y;
+      var yBase = Math.max(n.top + 1.3 * n.sp, n.y + 1.5 * n.sp);
       var hitsLabel = function (yy) { var x0 = n.x - hw, x1 = n.x + hw, a = yy - 0.12 * fs, b = yy + 0.86 * fs; return placed.some(function (q) { return q[0] < x1 && q[2] > x0 && q[1] < b && q[3] > a; }); };
-      for (t = 0; t < 10 && blocked(y); t++) { if (near === null && !hitsLabel(y)) near = y; y += step; }
-      if (t === 10 && blocked(y)) { y = near !== null ? near : y0; stats.tight = (stats.tight || 0) + 1; }
+      var blocked = function (yy) { return hitsLabel(yy) || !page.free(n.x - hw, yy - 0.12 * fs, n.x + hw, yy + 0.86 * fs); };
+      var setSize = function (v) { fs = v; hw = wRel * fs; step = 0.45 * fs; };
+      var found = false;
+      for (var v = want; !found; v = Math.max(floor, v * 0.87)) {
+        setSize(v);
+        // in dieser Größe: direkt über der Note oder ein kleines Stück höher (höchstens etwa 4 Linienabstände)
+        for (var k = 0, kMax = Math.max(1, Math.floor(4 * n.sp / step)); k <= kMax; k++) if (!blocked(yBase + k * step)) { y = yBase + k * step; found = true; break; }
+        if (v <= floor * 1.001) break;
+      }
+      if (!found) {
+        // nah an der Note ist nichts frei (z. B. Probenbuchstabe darüber): weiter nach oben ausweichen, erst in Wunschgröße, dann klein.
+        // In sehr dichten Stellen lieber nah an der Note über Notenbild schreiben als weit weg (nur anderen Fingersätzen wird immer ausgewichen).
+        var near = null, u;
+        [want, floor].forEach(function (v, pass) {
+          if (found || (pass && floor > want * 0.999)) return;
+          setSize(v); y = yBase; near = null;
+          for (u = 0; u < 10 && blocked(y); u++) { if (near === null && !hitsLabel(y)) near = y; y += step; }
+          found = !blocked(y);
+        });
+        if (!found) { y = near !== null ? near : yBase; stats.tight = (stats.tight || 0) + 1; }
+      }
       placed.push([n.x - hw, y - 0.12 * fs, n.x + hw, y + 0.86 * fs]);
       labels.push({ x: n.x, y: y, text: f ? String(f.finger) : '?', state: f ? f.state : 'norm', fs: fs, note: i });
       stats.labels++;
@@ -1820,7 +1873,7 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
     };
   }
 
-  NP.fingering = fingering; NP.assign = assign; NP.pageOps = pageOps; NP.pageLabels = pageLabels; NP.labelsOps = labelsOps; NP.freeFromBoxes = freeFromBoxes; NP.labelOps = labelOps;
+  NP.fingering = fingering; NP.assign = assign; NP.pageOps = pageOps; NP.pageLabels = pageLabels; NP.labelsOps = labelsOps; NP.freeFromBoxes = freeFromBoxes; NP.labelOps = labelOps; NP.sizeFactor = sizeFactor; NP.SIZES = SIZES;
 })(NotenPdf);
 
 // ===== Zusammenbau: Seiten lesen, Beschriftung erzeugen, PDF schreiben =====
@@ -1830,6 +1883,19 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
 
   function newStats() { return { pages: 0, notes: 0, labels: 0, unknown: 0, systems: 0, ink: 0, warn: [], list: [], mode: [] }; }
   function addWarn(stats, list) { (list || []).forEach(function (w) { if (stats.warn.indexOf(w) < 0) stats.warn.push(w); }); }
+
+  // Größe der Seite, wie man sie sieht (in Punkten, Drehung eingerechnet)
+  function pageSize(doc, pg) {
+    var box = null, d = pg.dict, guard = 0;
+    try {
+      var cb = doc.get(d.CropBox);
+      if (Array.isArray(cb)) box = cb;
+      while (!box && d && guard++ < 20) { var mb = doc.get(d.MediaBox); if (Array.isArray(mb)) box = mb; else d = doc.get(d.Parent); }
+      box = (box || [0, 0, 595.28, 841.89]).map(function (v) { return +doc.get(v); });
+      var rot = (((+doc.get(pg.dict.Rotate) || 0) % 360) + 360) % 360, w = Math.abs(box[2] - box[0]), h = Math.abs(box[3] - box[1]);
+      return rot === 90 || rot === 270 ? [h, w] : [w, h];
+    } catch (e) { return [595.28, 841.89]; }
+  }
 
   // Seite über die Zeichen der Notenschrift lesen. Liefert { notes, free, staves, warn } oder null.
   function readVectorPage(doc, pg, cache) {
@@ -1936,7 +2002,7 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
   }
 
   NP.newStats = newStats; NP.addWarn = addWarn; NP.readVectorPage = readVectorPage; NP.writeOverlay = writeOverlay;
-  NP.fontKeyFor = fontKeyFor; NP.writeImagePdf = writeImagePdf; NP.stripInk = stripInk;
+  NP.fontKeyFor = fontKeyFor; NP.pageSize = pageSize; NP.writeImagePdf = writeImagePdf; NP.stripInk = stripInk;
 })(NotenPdf);
 
 // ===== Bilderkennung: Notenzeilen im Bild finden und in ein gerades Normbild umrechnen =====
@@ -2631,6 +2697,7 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
   }
   function tick() { return new Promise(function (r) { setTimeout(r, 25); }); }
   function newCanvas(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+  function drop(c) { if (c && c.getContext) { try { c.width = c.height = 0; } catch (e) {} } }      // Speicher der Zeichenfläche sofort freigeben (auf Handys knapp)
   function grayOf(canvas) {
     var w = canvas.width, h = canvas.height, d = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data, g = new Uint8Array(w * h);
     for (var i = 0, j = 0; i < g.length; i++, j += 4) g[i] = (d[j] * 77 + d[j + 1] * 150 + d[j + 2] * 29) >> 8;
@@ -2673,12 +2740,12 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
     async function open() { if (!pdfDoc) { var lib = await pdfjs(); pdfDoc = await lib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise; } return pdfDoc; }
     for (var pi = 0; pi < pages.length; pi++) {
       status('Seite ' + (pi + 1) + ' von ' + pages.length + ' wird gelesen …'); await tick();
-      var pg = pages[pi], v = null, info = { pg: pg, kind: 'none', content: '', read: null, m: null, fontKey: asImages ? 'FzGB' : NP.fontKeyFor(doc, pg) };
+      var pg = pages[pi], v = null, info = { pg: pg, kind: 'none', content: '', read: null, m: null, size: NP.pageSize(doc, pg), fontKey: asImages ? 'FzGB' : NP.fontKeyFor(doc, pg) };
       try { v = NP.readVectorPage(doc, pg, cache); } catch (e) { v = null; }
       var vector = !!(v && v.read && v.read.notes.length), page = null, vp1 = null;
       if (!vector || asImages) {
         try { page = await (await open()).getPage(pi + 1); } catch (e) { throw new NP.PdfError('Die Seiten dieses PDFs konnten nicht dargestellt werden. (' + (e && e.message ? e.message : e) + ')'); }
-        vp1 = page.getViewport({ scale: 1 }); info.m = viewToPdf(vp1);
+        vp1 = page.getViewport({ scale: 1 }); info.m = viewToPdf(vp1); info.size = [vp1.width, vp1.height];
         if (vector && !isIdentity(info.m)) vector = false;
       }
       if (vector) { info.kind = 'vector'; info.read = v.read; info.content = v.content; }
@@ -2686,13 +2753,15 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
         var scale = BASE * Math.min(1, MAX_SIDE / (BASE * Math.max(vp1.width, vp1.height))), canvas = await renderPdfPage(page, scale), rec = recognize(canvas, scale, vp1.height);
         if (Math.abs(rec.redo - 1) > 0.12) {
           var s2 = Math.min(scale * rec.redo, MAX_SIDE / Math.max(vp1.width, vp1.height), 4 * BASE);
-          if (Math.abs(s2 / scale - 1) > 0.12) { status('Seite ' + (pi + 1) + ': zweiter Versuch in passender Größe …'); await tick(); canvas = await renderPdfPage(page, s2); var rec2 = recognize(canvas, s2, vp1.height); if (rec2.r.notes.length >= rec.r.notes.length) rec = rec2; }
+          if (Math.abs(s2 / scale - 1) > 0.12) { status('Seite ' + (pi + 1) + ': zweiter Versuch in passender Größe …'); await tick(); drop(canvas); canvas = await renderPdfPage(page, s2); var rec2 = recognize(canvas, s2, vp1.height); if (rec2.r.notes.length >= rec.r.notes.length) rec = rec2; }
         }
+        drop(canvas);
         if (rec.r.notes.length) { info.kind = 'image'; info.read = slim(rec.r); }
       }
       if (asImages) {
         var cv = await renderPdfPage(page, BASE);
         info.img = { jpeg: await jpegOf(cv), wPx: cv.width, hPx: cv.height, wPt: vp1.width, hPt: vp1.height, gray: false };
+        drop(cv);
       }
       out.push(info);
     }
@@ -2729,14 +2798,16 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
         if (Math.abs(f2 / f - 1) > 0.12) {
           status('Zweiter Versuch in passender Größe …'); await tick();
           var w2 = Math.round(bw * f2), h2 = Math.round(bh * f2), c2 = drawScaled(bmp, w2, h2), rec2 = recognize(c2, w2 / wPt, h2 / (w2 / wPt));
-          if (rec2.r.notes.length >= rec.r.notes.length) { rec = rec2; canvas = c2; w = w2; h = h2; }
+          if (rec2.r.notes.length >= rec.r.notes.length) { rec = rec2; drop(canvas); canvas = c2; w = w2; h = h2; } else drop(c2);
         }
       }
       if (bmp.close) bmp.close();
       // fürs fertige PDF reicht eine handliche Bildgröße
       var fo = Math.min(1, 2200 / Math.max(w, h)), store = fo < 1 ? drawScaled(canvas, Math.round(w * fo), Math.round(h * fo)) : canvas;
-      out.push({ kind: rec.r.notes.length ? 'image' : 'none', read: rec.r.notes.length ? slim(rec.r) : null, fontKey: 'FzGB',
+      out.push({ kind: rec.r.notes.length ? 'image' : 'none', read: rec.r.notes.length ? slim(rec.r) : null, fontKey: 'FzGB', size: [wPt, h / (w / wPt)],
         img: { jpeg: await jpegOf(store), wPx: store.width, hPx: store.height, wPt: wPt, hPt: h / (w / wPt), gray: false } });
+      if (store !== canvas) drop(store);
+      drop(canvas);
     }
     return { type: 'img', pages: out, asImages: true };
   }
@@ -2764,9 +2835,11 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
   function layout(session, opts) {
     var stats = NP.newStats();
     stats.vector = []; stats.image = []; stats.empty = [];
+    session.sizeF = NP.sizeFactor(opts);
     session.auto = session.pages.map(function (info, pi) {
       stats.pages = pi + 1;
       if (!info.read) { stats.empty.push(pi + 1); return []; }
+      info.read.size = info.size;
       stats.systems += info.read.staves; NP.addWarn(stats, info.read.warn);
       (info.kind === 'vector' ? stats.vector : stats.image).push(pi + 1);
       return NP.pageLabels(info.read, opts, stats);
@@ -2776,7 +2849,7 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
     return stats;
   }
   // Schritt 2: Korrekturen von Hand einrechnen. Sie hängen an der Note (nicht am Bildschirmplatz) und überstehen so andere Einstellungen.
-  // edits je Seite: by[Notennummer] = { text, state, dx, dy, del }, add = [{ x, y, text, state, fs }]
+  // edits je Seite: by[Notennummer] = { text, state, dx, dy, del }, add = [{ x, y, text, state, u }] (u: Größe geteilt durch den Größenfaktor)
   function labelsOf(session, pi) {
     var e = session.edits[pi], out = [];
     (session.auto[pi] || []).forEach(function (a) {
@@ -2784,7 +2857,7 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
       if (o && o.del) return;
       out.push({ x: a.x + (o && o.dx || 0), y: a.y + (o && o.dy || 0), text: o && o.text !== undefined ? o.text : a.text, state: o && o.state !== undefined ? o.state : a.state, fs: a.fs, ref: { note: a.note }, changed: !!o });
     });
-    e.add.forEach(function (l, i) { out.push({ x: l.x, y: l.y, text: l.text, state: l.state, fs: l.fs, ref: { add: i }, changed: true }); });
+    e.add.forEach(function (l, i) { out.push({ x: l.x, y: l.y, text: l.text, state: l.state, fs: l.u * session.sizeF, ref: { add: i }, changed: true }); });
     return out;
   }
   function editCount(session) { var n = 0; (session.edits || []).forEach(function (e) { n += Object.keys(e.by).length + e.add.length; }); return n; }
@@ -2803,30 +2876,64 @@ var NotenPdf = (typeof NotenPdf !== 'undefined' && NotenPdf) || {};
     });
     return { bytes: session.asImages ? NP.writeImagePdf(imgs) : NP.writeOverlay(session.doc, jobs, stats), ink: stats.ink, labels: count };
   }
-  // Seiten eines PDFs für die Vorschau zeichnen. Liefert je Seite { wrap, canvas, vp, scale, w, h } (vp: Umrechnung PDF <-> Bildschirm)
-  var previewRun = 0;
+  // Seiten eines PDFs für die Vorschau zeichnen: einmal in fester Bildgröße. Vergrößert wird nur die Darstellung (Breite der Seite),
+  // sichtbare Seiten werden danach bei Bedarf schärfer nachgezeichnet (sharpen).
+  // Liefert je Seite { wrap, canvas, vp, scale, w, h, viewH } in "Grundgröße" (w = baseW Bildschirmpunkte breit).
+  var previewRun = 0, previewDoc = null, sharpRun = 0;
+  // Handys vertragen nur Zeichenflächen bis etwa 16 Mio. Bildpunkte und insgesamt begrenzt viele
+  var SMALL = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var PAGE_PX = SMALL ? 9e6 : 12e6, TOTAL_PX = SMALL ? 24e6 : 36e6, FINE_MAX = SMALL ? 2 : 3;
+  function dprOf() { return Math.max(1, Math.min(3, window.devicePixelRatio || 1)); }
   function fitWidth(box) { return Math.max(260, Math.min(1100, (box.clientWidth || 930) - 30)); }
-  async function drawPages(bytes, box, zoom) {
-    var run = ++previewRun, lib = await pdfjs(), doc = await lib.getDocument({ data: bytes.slice(), isEvalSupported: false }).promise, out = [];
-    if (run !== previewRun) return null;
-    var dpr = Math.min(2, window.devicePixelRatio || 1), width = Math.round(fitWidth(box) * (zoom || 1)), frag = [];
+  function styleCanvas(c, i) { c.className = 'noten-page'; c.setAttribute('role', 'img'); c.setAttribute('aria-label', 'Seite ' + i); }
+  async function drawPages(bytes, box, baseW) {
+    var run = ++previewRun, lib = await pdfjs(), task = lib.getDocument({ data: bytes.slice(), isEvalSupported: false }), doc = await task.promise, out = [];
+    if (run !== previewRun) { try { task.destroy(); } catch (e) {} return null; }
+    var dpr = dprOf(), frag = [], budget = Math.min(PAGE_PX, TOTAL_PX / doc.numPages);
     for (var i = 1; i <= doc.numPages; i++) {
-      // Bildgröße begrenzen (Handys vertragen nur Zeichenflächen bis etwa 16 Millionen Bildpunkte)
-      var page = await doc.getPage(i), vp1 = page.getViewport({ scale: 1 }), scale = width / vp1.width, c = await renderPdfPage(page, Math.min(scale * dpr, Math.sqrt(12e6 / (vp1.width * vp1.height))));
-      if (run !== previewRun) return null;
+      var page = await doc.getPage(i), vp1 = page.getViewport({ scale: 1 }), scale = baseW / vp1.width;
+      var rs = Math.min(scale * dpr * 1.5, Math.sqrt(budget / (vp1.width * vp1.height))), c = await renderPdfPage(page, rs);
+      if (run !== previewRun) { try { task.destroy(); } catch (e) {} return null; }
       var wrap = document.createElement('div');
-      wrap.className = 'noten-pagewrap'; wrap.style.width = width + 'px';
-      c.className = 'noten-page'; c.style.width = width + 'px'; c.setAttribute('role', 'img'); c.setAttribute('aria-label', 'Seite ' + i);
+      wrap.className = 'noten-pagewrap'; styleCanvas(c, i);
       wrap.appendChild(c);
-      out.push({ wrap: wrap, canvas: c, vp: page.getViewport({ scale: scale }), scale: scale, w: width, h: width * vp1.height / vp1.width, viewH: vp1.height });
+      out.push({ wrap: wrap, canvas: c, vp: page.getViewport({ scale: scale }), scale: scale, w: baseW, h: baseW * vp1.height / vp1.width, viewH: vp1.height,
+        page: page, area: vp1.width * vp1.height, wPt: vp1.width, rs: rs, rs0: rs, n: i });
       frag.push(wrap);
     }
+    if (previewDoc) { try { previewDoc.destroy(); } catch (e) {} }
+    previewDoc = task; sharpRun++;
+    Array.prototype.forEach.call(box.querySelectorAll('canvas'), drop);
     box.textContent = '';
     frag.forEach(function (w) { box.appendChild(w); });
     return out;
   }
+  // Sichtbare Seiten in der Auflösung nachzeichnen, die die aktuelle Vergrößerung braucht; nur wenige Seiten bleiben hoch aufgelöst.
+  async function sharpen(pages, zoom, visible) {
+    var run = ++sharpRun, dpr = dprOf(), fine = pages.filter(function (P) { return P.rs > P.rs0 * 1.05; });
+    async function redo(P, rs) {
+      var c = await renderPdfPage(P.page, rs);
+      if (run !== sharpRun || !P.canvas.parentNode) return false;
+      styleCanvas(c, P.n); P.canvas.parentNode.replaceChild(c, P.canvas); P.canvas.width = P.canvas.height = 0; P.canvas = c; P.rs = rs;
+      return true;
+    }
+    try {
+      for (var k = 0; k < visible.length; k++) {
+        var P = pages[visible[k]];
+        if (!P) continue;
+        var want = Math.min(P.scale * zoom * dpr, Math.sqrt(PAGE_PX / P.area));
+        if (want > P.rs * 1.25) {
+          // Platz schaffen: weit entfernte, hoch aufgelöste Seiten zurück auf die Grundgröße
+          var others = fine.filter(function (Q) { return visible.indexOf(pages.indexOf(Q)) < 0; });
+          while (others.length && fine.length >= FINE_MAX) { var Q = others.shift(); fine.splice(fine.indexOf(Q), 1); if (!(await redo(Q, Q.rs0))) return; }
+          if (!(await redo(P, want))) return;
+          if (fine.indexOf(P) < 0) fine.push(P);
+        }
+      }
+    } catch (e) { /* die Vorschau bleibt dann etwas unschärfer */ }
+  }
 
-  NP.app = { prepare: prepare, layout: layout, labelsOf: labelsOf, editCount: editCount, build: build, drawPages: drawPages, fitWidth: fitWidth, inView: inView, pdfjs: pdfjs };
+  NP.app = { prepare: prepare, layout: layout, labelsOf: labelsOf, editCount: editCount, build: build, drawPages: drawPages, sharpen: sharpen, fitWidth: fitWidth, inView: inView, pdfjs: pdfjs };
 })(NotenPdf);
 </script>
 <script>
@@ -2836,10 +2943,10 @@ var NotenEdit = (function () {
   'use strict';
   var NS = 'http://www.w3.org/2000/svg';
   var COL = { low: 'rgb(26,92,199)', high: 'rgb(204,92,0)', norm: 'rgb(20,20,26)' };
-  var S = null;            // { session, pages: [{ wrap, vp, scale, w, h, viewH, svg }] }
+  var S = null;            // { session, pages: [{ wrap, vp, scale, w, h, viewH, svg }], box, zoom }
   var ui = {}, onChange = function () {};
-  var sel = null, adding = false, pop = null, drag = null;
-  var COARSE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var sel = null, adding = false, pop = null, drag = null, tap = null, lastType = 'mouse';
+  var popGuard = 0;        // kurz nach dem Antippen nimmt das Auswahlfeld noch nichts an (der zweite Tipp eines Doppeltippens soll nichts ändern)
 
   function app() { return NotenPdf.app; }
   function el(name, attrs) { var e = document.createElementNS(NS, name); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
@@ -2848,7 +2955,24 @@ var NotenEdit = (function () {
   // Umrechnung zwischen den Koordinaten der Fingersätze und dem Bildschirm
   function toPx(pi, x, y) { var p = S.pages[pi]; return app().inView(S.session, S.session.pages[pi]) ? [x * p.scale, (p.viewH - y) * p.scale] : p.vp.convertToViewportPoint(x, y); }
   function fromPx(pi, px, py) { var p = S.pages[pi]; return app().inView(S.session, S.session.pages[pi]) ? [px / p.scale, p.viewH - py / p.scale] : p.vp.convertToPdfPoint(px, py); }
-  function pointIn(pi, ev) { var r = S.pages[pi].svg.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
+  // Punkt auf der Seite in Grundgröße (ohne Vergrößerung); die Ebene der Fingersätze wird mit der Seite zusammen vergrößert
+  function pointIn(pi, ev) { var P = S.pages[pi], r = P.svg.getBoundingClientRect(), k = r.width ? P.w / r.width : 1; return [(ev.clientX - r.left) * k, (ev.clientY - r.top) * k]; }
+  // Kasten eines Fingersatzes in Grundgröße
+  function boxOf(pi, l) {
+    var P = S.pages[pi], p = toPx(pi, l.x, l.y), fs = l.fs * P.scale, arrow = l.state !== 'norm';
+    var tw = (l.text === '?' ? 0.611 : 0.556) * fs, x0 = p[0] - (tw + (arrow ? 0.52 * fs : 0)) / 2;
+    return { x: x0 - 0.3 * fs, y: p[1] - 0.98 * fs, w: tw + (arrow ? 0.52 * fs : 0) + 0.6 * fs, h: 1.26 * fs };
+  }
+  // Fingersatz, der einem Punkt am nächsten liegt (für Finger: man muss nicht genau treffen). max in Bildschirmpunkten.
+  function nearest(pi, pt, max) {
+    var best = null, bd = max / S.zoom;
+    (S.pages[pi].labels || []).forEach(function (l) {
+      var b = boxOf(pi, l), dx = Math.max(b.x - pt[0], 0, pt[0] - b.x - b.w), dy = Math.max(b.y - pt[1], 0, pt[1] - b.y - b.h), d = Math.sqrt(dx * dx + dy * dy);
+      if (d < bd || (d === bd && d === 0)) { bd = d; best = l; }
+    });
+    return best;
+  }
+  function isSel(pi, l) { return !!(l && sel && sel.pi === pi && sameRef(sel.ref, l.ref)); }
 
   // ---------- Zeichnen ----------
   function drawPage(pi) {
@@ -2860,10 +2984,8 @@ var NotenEdit = (function () {
       var tw = (l.text === '?' ? 0.611 : 0.556) * fs, x0 = p[0] - (tw + (arrow ? 0.52 * fs : 0)) / 2, col = COL[l.state] || COL.norm;
       var chosen = sel && sel.pi === pi && sameRef(sel.ref, l.ref);
       var g = el('g', { 'class': 'noten-lab' + (chosen ? ' sel' : '') + (l.changed ? ' changed' : ''), 'data-i': i, tabindex: -1 });
-      // Trefferfläche; für Finger mindestens so groß, dass man sie sicher antippt
+      // Trefferfläche (mit dem Finger zählt der nächstgelegene Fingersatz, siehe nearest)
       var hw = tw + (arrow ? 0.52 * fs : 0) + 0.6 * fs, hh = 1.26 * fs, hx = x0 - 0.3 * fs, hy = p[1] - 0.98 * fs;
-      if (COARSE && hw < 30) { hx -= (30 - hw) / 2; hw = 30; }
-      if (COARSE && hh < 30) { hy -= (30 - hh) / 2; hh = 30; }
       g.appendChild(el('rect', { 'class': 'hit', x: hx, y: hy, width: hw, height: hh, rx: 0.2 * fs }));
       var t = el('text', { x: x0, y: p[1], 'font-size': fs, fill: col });
       t.textContent = l.text; g.appendChild(t);
@@ -2929,7 +3051,7 @@ var NotenEdit = (function () {
   function addAt(pi, pt) {
     var fs = typicalSize(pi), q = fromPx(pi, pt[0], pt[1] + 0.36 * fs * S.pages[pi].scale), e = S.session.edits[pi];
     snapshot();
-    e.add.push({ x: q[0], y: q[1], text: '1', state: 'norm', fs: fs });
+    e.add.push({ x: q[0], y: q[1], text: '1', state: 'norm', u: fs / (S.session.sizeF || 1) });
     adding = false;
     var old = sel; sel = { pi: pi, ref: { add: e.add.length - 1 } };
     if (old && old.pi !== pi) drawPage(old.pi);
@@ -2963,7 +3085,7 @@ var NotenEdit = (function () {
   function button(text, label, pressed, fn, cls) {
     var b = document.createElement('button');
     b.type = 'button'; b.textContent = text; b.setAttribute('aria-label', label); b.setAttribute('aria-pressed', String(!!pressed)); if (cls) b.className = cls;
-    b.addEventListener('click', function (ev) { ev.stopPropagation(); fn(); });
+    b.addEventListener('click', function (ev) { ev.stopPropagation(); if (Date.now() < popGuard) return; fn(); });
     return b;
   }
   function showPop() {
@@ -2981,11 +3103,19 @@ var NotenEdit = (function () {
     r3.appendChild(button('Fertig', 'Auswahl schließen', false, function () { select(0, null); }));
     var tip = document.createElement('p'); tip.className = 'only-mouse'; tip.textContent = 'Tasten: 0–4 und ? · ↑ hoch · ↓ tief · ← → weiter · Entf löscht';
     pop.appendChild(r1); pop.appendChild(r2); pop.appendChild(r3); pop.appendChild(tip);
-    ['pointerdown', 'dblclick'].forEach(function (t) { pop.addEventListener(t, function (ev) { ev.stopPropagation(); }); });
+    ['pointerdown', 'dblclick'].forEach(function (t) { pop.addEventListener(t, function (ev) { if (Date.now() >= popGuard) ev.stopPropagation(); }); });
     P.wrap.appendChild(pop);
-    var w = pop.offsetWidth || 230, h = pop.offsetHeight || 120, top = p[1] + 0.45 * fs + 8;
-    if (top + h > P.h - 4) top = Math.max(4, p[1] - 1.1 * fs - h - 8);
-    pop.style.left = Math.max(4, Math.min(P.w - w - 4, p[0] - w / 2)) + 'px';
+    // Platz: unter dem Fingersatz, sonst darüber; immer im sichtbaren Teil der Seite (auch wenn die Vorschau vergrößert und verschoben ist)
+    var z = S.zoom, px = p[0] * z, py = p[1] * z, f = fs * z, w = pop.offsetWidth || 230, h = pop.offsetHeight || 120;
+    var r = P.wrap.getBoundingClientRect(), b = S.box.getBoundingClientRect();
+    var vx0 = Math.max(0, b.left - r.left, -r.left), vx1 = Math.min(P.w * z, b.right - r.left, window.innerWidth - r.left);
+    var vy0 = Math.max(0, b.top - r.top, -r.top), vy1 = Math.min(P.h * z, b.bottom - r.top, window.innerHeight - r.top);
+    var top = py + 0.45 * f + 8;
+    if (top + h > vy1 - 4 && py - 1.1 * f - h - 8 >= vy0 + 4) top = py - 1.1 * f - h - 8;
+    if (top + h > P.h * z - 4) top = Math.max(4, py - 1.1 * f - h - 8);
+    var left = px - w / 2;
+    if (vx1 - vx0 >= w + 8) left = Math.max(vx0 + 4, Math.min(vx1 - w - 4, left));
+    pop.style.left = Math.max(4, Math.min(Math.max(4, P.w * z - w - 4), left)) + 'px';
     pop.style.top = top + 'px';
   }
 
@@ -2995,19 +3125,39 @@ var NotenEdit = (function () {
     var svg = S.pages[pi].svg;
     svg.addEventListener('pointerdown', function (ev) {
       if (ev.button) return;
-      var g = labelOf(ev.target), pt = pointIn(pi, ev);
-      if (g) { ev.preventDefault(); drag = { pi: pi, ref: S.pages[pi].labels[+g.getAttribute('data-i')].ref, g: g, start: pt, moved: false, slack: ev.pointerType === 'touch' ? 9 : 4 }; try { svg.setPointerCapture(ev.pointerId); } catch (e) {} return; }
+      lastType = ev.pointerType || 'mouse';
+      var pt = pointIn(pi, ev);
+      if (ev.pointerType === 'touch') {
+        // Finger: Tippen wählt aus, Wischen verschiebt die Ansicht. Ziehen lässt sich nur der Fingersatz, der schon ausgewählt ist.
+        var near = nearest(pi, pt, 16);
+        if (isSel(pi, near)) { drag = { pi: pi, ref: near.ref, g: svg.querySelector('.noten-lab.sel'), start: pt, moved: false, slack: 6 / S.zoom, id: ev.pointerId }; try { svg.setPointerCapture(ev.pointerId); } catch (e) {} tap = null; return; }
+        tap = { pi: pi, pt: pt, x: ev.clientX, y: ev.clientY, t: ev.timeStamp, id: ev.pointerId };
+        return;
+      }
+      var g = labelOf(ev.target);
+      if (g) { ev.preventDefault(); drag = { pi: pi, ref: S.pages[pi].labels[+g.getAttribute('data-i')].ref, g: g, start: pt, moved: false, slack: 4 / S.zoom, id: ev.pointerId }; try { svg.setPointerCapture(ev.pointerId); } catch (e) {} return; }
       if (adding) { ev.preventDefault(); addAt(pi, pt); return; }
       if (sel) select(0, null);
     });
     svg.addEventListener('pointermove', function (ev) {
-      if (!drag || drag.pi !== pi) return;
+      if (!drag || drag.pi !== pi || !drag.g) return;
       var pt = pointIn(pi, ev), dx = pt[0] - drag.start[0], dy = pt[1] - drag.start[1];
       if (!drag.moved && Math.abs(dx) + Math.abs(dy) < drag.slack) return;
       if (!drag.moved) { drag.moved = true; hidePop(); drag.g.classList.add('dragging'); }
       drag.g.setAttribute('transform', 'translate(' + dx + ' ' + dy + ')');
     });
     var finish = function (ev) {
+      if (tap && tap.pi === pi && ev.pointerId === tap.id) {
+        var tp = tap; tap = null;
+        // nur ein kurzes Antippen ohne Bewegung zählt; Wischen und Zwei-Finger-Gesten gehören der Ansicht
+        if (ev.type === 'pointerup' && Math.abs(ev.clientX - tp.x) + Math.abs(ev.clientY - tp.y) < 12 && ev.timeStamp - tp.t < 700) {
+          var l = nearest(pi, tp.pt, 22);
+          if (l) { popGuard = Date.now() + 350; select(pi, l.ref); }
+          else if (adding) addAt(pi, tp.pt);
+          else if (sel) select(0, null);
+        }
+        return;
+      }
       if (!drag || drag.pi !== pi) return;
       var d = drag, pt = pointIn(pi, ev); drag = null;
       try { svg.releasePointerCapture(ev.pointerId); } catch (e) {}
@@ -3015,12 +3165,15 @@ var NotenEdit = (function () {
       else if (d.moved) drawPage(pi);
       else select(pi, d.ref);
     };
-    // Finger auf einem Fingersatz (oder beim Hinzufügen): nicht blättern, sondern ziehen bzw. setzen. Überall sonst blättert die Seite normal.
-    svg.addEventListener('touchstart', function (ev) { if (labelOf(ev.target) || adding) ev.preventDefault(); }, { passive: false });
+    // Finger auf dem ausgewählten Fingersatz: nicht die Ansicht verschieben, sondern den Fingersatz ziehen. Überall sonst gehört der Finger der Ansicht.
+    svg.addEventListener('touchstart', function (ev) {
+      if (ev.touches.length !== 1 || !sel || sel.pi !== pi) return;
+      if (isSel(pi, nearest(pi, pointIn(pi, ev.touches[0]), 16))) ev.preventDefault();
+    }, { passive: false });
     svg.addEventListener('touchmove', function (ev) { if (drag) ev.preventDefault(); }, { passive: false });
     svg.addEventListener('pointerup', finish);
     svg.addEventListener('pointercancel', finish);
-    svg.addEventListener('dblclick', function (ev) { if (!labelOf(ev.target)) { ev.preventDefault(); addAt(pi, pointIn(pi, ev)); } });
+    svg.addEventListener('dblclick', function (ev) { if (lastType !== 'touch' && !labelOf(ev.target)) { ev.preventDefault(); addAt(pi, pointIn(pi, ev)); } });
   }
   document.addEventListener('keydown', function (ev) {
     if (!S || !S.box || S.box.offsetParent === null) return;
@@ -3048,21 +3201,30 @@ var NotenEdit = (function () {
     if (ui.undo) ui.undo.addEventListener('click', undo);
     if (ui.reset) ui.reset.addEventListener('click', reset);
   }
-  // pages: Ergebnis von NotenPdf.app.drawPages (gezeichnete Seiten ohne Fingersätze)
-  function open(session, pages, box) {
-    hidePop(); sel = null; adding = false; drag = null;
-    S = { session: session, pages: pages, box: box };
+  // pages: Ergebnis von NotenPdf.app.drawPages (gezeichnete Seiten ohne Fingersätze, in Grundgröße). zoom: Vergrößerung der Darstellung.
+  function sizePages() { S.pages.forEach(function (p) { p.wrap.style.width = (p.w * S.zoom) + 'px'; p.wrap.style.height = (p.h * S.zoom) + 'px'; }); }
+  function open(session, pages, box, zoom) {
+    hidePop(); sel = null; adding = false; drag = null; tap = null;
+    S = { session: session, pages: pages, box: box, zoom: zoom || 1 };
     pages.forEach(function (p, pi) {
-      p.svg = el('svg', { 'class': 'noten-layer', width: p.w, height: p.h, viewBox: '0 0 ' + p.w + ' ' + p.h });
+      p.svg = el('svg', { 'class': 'noten-layer', viewBox: '0 0 ' + p.w + ' ' + p.h, preserveAspectRatio: 'none' });
       p.wrap.appendChild(p.svg);
       wire(pi);
     });
-    drawAll(); syncBar();
+    sizePages(); drawAll(); syncBar();
   }
+  // Vergrößerung ändern: nur die Darstellungsgröße, die Seitenbilder bleiben (werden bei Bedarf nachgeschärft)
+  function setZoom(zoom) { if (!S) return; S.zoom = zoom; sizePages(); if (sel) showPop(); }
+  // Zwei-Finger-Geste beginnt: angefangenes Antippen oder Ziehen gilt nicht
+  // (nichts neu zeichnen: ein Finger, der auf einem Fingersatz liegt, muss sein Element behalten, sonst kommen seine Bewegungen nicht mehr an)
+  function cancelTouch() { tap = null; if (drag) { if (drag.g) { drag.g.removeAttribute('transform'); drag.g.classList.remove('dragging'); } var m = drag.moved; drag = null; if (m && sel) showPop(); } }
+  function pages() { return S ? S.pages : []; }
+  function deselect() { if (S && sel) select(0, null); }
+  function guarded() { return Date.now() < popGuard; }
   function refresh() { if (!S) return; var keep = sel; sel = null; hidePop(); drawAll(); if (keep && S.pages[keep.pi] && S.pages[keep.pi].labels.some(function (l) { return sameRef(l.ref, keep.ref); })) select(keep.pi, keep.ref); syncBar(); }
   function close() { hidePop(); S = null; sel = null; adding = false; syncBar(); }
 
-  return { init: init, open: open, refresh: refresh, close: close, undo: undo };
+  return { init: init, open: open, refresh: refresh, close: close, undo: undo, setZoom: setZoom, cancelTouch: cancelTouch, pages: pages, deselect: deselect, guarded: guarded };
 })();
 </script>
 <script>
@@ -3070,9 +3232,10 @@ var NotenEdit = (function () {
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var session = null, name = '', url = null, busy = false, stats = null, baseKey = null;
-  var base = null, zoom = 1, saved = null;            // Hintergrund der Vorschau, ihre Größe, zuletzt geschriebenes PDF
-  var ZOOMS = [1, 1.5, 2, 3, 4];
+  var base = null, zoom = 1, saved = null;            // Hintergrund der Vorschau, ihre Vergrößerung, zuletzt geschriebenes PDF
+  var ZMIN = 1, ZMAX = 6;                             // 1 = ganze Seitenbreite sichtbar
   var TOUCH = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var view = $('noten-pages'), inner = $('noten-inner');   // sichtbarer Ausschnitt (verschiebbar) und sein Inhalt
 
   function showTab(tab) {
     ['griff', 'noten'].forEach(function (t) {
@@ -3096,7 +3259,7 @@ var NotenEdit = (function () {
     status(e && e.name === 'PdfError' ? e.message : 'Die Datei konnte nicht gelesen werden. (' + (e && e.message ? e.message : e) + ')', 'bad');
   }
   function list(pages) { return (pages.length > 1 ? 'Seiten ' : 'Seite ') + pages.join(', '); }
-  function options() { return { open: $('noten-open').value, every: $('noten-every').checked, strip: $('noten-strip').checked }; }
+  function options() { return { open: $('noten-open').value, every: $('noten-every').checked, strip: $('noten-strip').checked, size: $('noten-size').value }; }
 
   // PDF aus dem Stand schreiben, den die Vorschau zeigt (nach jeder Korrektur neu)
   function writePdf() {
@@ -3134,25 +3297,132 @@ var NotenEdit = (function () {
     var key = String(!!o.strip);
     if (baseKey === key) { NotenEdit.refresh(); return; }
     try { base = NotenPdf.app.build(session, o, false).bytes; } catch (e) { fail(e); return; }
-    if (baseKey === null) {                             // neue Datei: auf schmalen Bildschirmen so groß, dass man die Zahlen lesen kann
-      var fit = NotenPdf.app.fitWidth($('noten-pages'));
-      zoom = fit >= 600 ? 1 : ZOOMS.filter(function (z) { return z * fit >= 640; })[0] || 3;
-    }
+    if (baseKey === null) zoom = 1;                     // neue Datei: ganze Seite zeigen
     baseKey = key;
     draw();
   }
   function draw() {
-    var mine = session, box = $('noten-pages');
-    $('noten-zoom-out').disabled = zoom <= ZOOMS[0]; $('noten-zoom-in').disabled = zoom >= ZOOMS[ZOOMS.length - 1];
-    NotenPdf.app.drawPages(base, box, zoom).then(function (pages) { if (pages && session === mine) NotenEdit.open(session, pages, box); },
-      function (e) { baseKey = null; NotenEdit.close(); box.textContent = 'Die Vorschau konnte nicht gezeichnet werden. Das PDF lässt sich trotzdem speichern. (' + (e && e.message ? e.message : e) + ')'; });
+    var mine = session;
+    syncZoom();
+    NotenPdf.app.drawPages(base, inner, NotenPdf.app.fitWidth(view)).then(function (pages) { if (pages && session === mine) { NotenEdit.open(session, pages, view, zoom); sharpenSoon(); } },
+      function (e) { baseKey = null; NotenEdit.close(); inner.textContent = 'Die Vorschau konnte nicht gezeichnet werden. Das PDF lässt sich trotzdem speichern. (' + (e && e.message ? e.message : e) + ')'; });
   }
-  function zoomBy(dir) {
-    if (!session || !base) return;
-    var i = ZOOMS.indexOf(zoom) + dir;
-    if (i < 0 || i >= ZOOMS.length) return;
-    zoom = ZOOMS[i]; draw();
+
+  // ---------- Vergrößern und Verschieben der Vorschau ----------
+  function syncZoom() { $('noten-zoom-out').disabled = zoom <= ZMIN + 0.01; $('noten-zoom-in').disabled = zoom >= ZMAX - 0.01; }
+  function clampZoom(z) { return Math.max(ZMIN, Math.min(ZMAX, z)); }
+  // Stelle der Vorschau unter einem Bildschirmpunkt: Seite und Lage auf der Seite (0..1), damit sie beim Vergrößern unter dem Finger bleibt
+  function anchorAt(cx, cy) {
+    var pages = NotenEdit.pages(), best = null, bd = Infinity;
+    pages.forEach(function (P, i) {
+      var r = P.wrap.getBoundingClientRect(), d = Math.max(r.top - cy, 0, cy - r.bottom);
+      if (d < bd) { bd = d; best = { i: i, u: (cx - r.left) / (r.width || 1), v: (cy - r.top) / (r.height || 1) }; }
+    });
+    return best;
   }
+  function scrollTo(anchor, cx, cy) {
+    var P = NotenEdit.pages()[anchor.i]; if (!P) return;
+    var r = P.wrap.getBoundingClientRect(), dx = r.left + anchor.u * r.width - cx, dy = r.top + anchor.v * r.height - cy;
+    view.scrollLeft += dx;
+    var before = view.scrollTop; view.scrollTop += dy;
+    var rest = dy - (view.scrollTop - before);          // am Rechner blättert die ganze Seite, nicht der Kasten
+    if (Math.abs(rest) > 1 && view.scrollHeight <= view.clientHeight + 1) window.scrollBy(0, rest);
+  }
+  function visibleCenter() {
+    var b = view.getBoundingClientRect(), top = Math.max(b.top, 0), bottom = Math.min(b.bottom, window.innerHeight);
+    return [b.left + b.width / 2, bottom > top ? (top + bottom) / 2 : b.top + 40];
+  }
+  function setZoom(z, cx, cy, anchor) {
+    z = clampZoom(z);
+    if (!session || !NotenEdit.pages().length) return;
+    if (cx === undefined) { var c = visibleCenter(); cx = c[0]; cy = c[1]; }
+    anchor = anchor || anchorAt(cx, cy);
+    zoom = z; NotenEdit.setZoom(zoom); syncZoom();
+    if (anchor) scrollTo(anchor, cx, cy);
+    sharpenSoon();
+  }
+  // sichtbare Seiten schärfer nachzeichnen, sobald die Ansicht zur Ruhe gekommen ist
+  var sharpTimer = 0;
+  function sharpenSoon() {
+    clearTimeout(sharpTimer);
+    sharpTimer = setTimeout(function () {
+      var pages = NotenEdit.pages(), b = view.getBoundingClientRect(), top = Math.max(b.top, 0) - 200, bottom = Math.min(b.bottom, window.innerHeight) + 200, vis = [];
+      pages.forEach(function (P, i) { var r = P.wrap.getBoundingClientRect(); if (r.bottom > top && r.top < bottom) vis.push(i); });
+      if (vis.length) NotenPdf.app.sharpen(pages, zoom, vis);
+    }, 250);
+  }
+  // Fenster oder Handy gedreht: Vorschau an die neue Breite anpassen
+  var fitTimer = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(fitTimer);
+    fitTimer = setTimeout(function () {
+      if (!session || !base || !NotenEdit.pages().length || view.offsetParent === null) return;
+      var w = NotenPdf.app.fitWidth(view), old = NotenEdit.pages()[0].w;
+      if (Math.abs(w / old - 1) > 0.04) draw();
+    }, 300);
+  });
+  view.addEventListener('scroll', sharpenSoon, { passive: true });
+  window.addEventListener('scroll', sharpenSoon, { passive: true });
+
+  // Zwei Finger: vergrößern und verkleinern (die Stelle zwischen den Fingern bleibt stehen). Ein Finger verschiebt (macht der Browser selbst).
+  var pinch = null, lastTap = null;
+  function mid(ts) { return [(ts[0].clientX + ts[1].clientX) / 2, (ts[0].clientY + ts[1].clientY) / 2]; }
+  function dist(ts) { var dx = ts[0].clientX - ts[1].clientX, dy = ts[0].clientY - ts[1].clientY; return Math.sqrt(dx * dx + dy * dy) || 1; }
+  function pinchDraw() {
+    // Inhalt als Ganzes vergrößert zeigen (schnell); die echte Größe wird beim Loslassen gesetzt
+    var r = inner.getBoundingClientRect(), ox = r.left - pinch.tx, oy = r.top - pinch.ty, s = pinch.z / pinch.z0;
+    pinch.tx = pinch.c[0] - ox - pinch.p[0] * s; pinch.ty = pinch.c[1] - oy - pinch.p[1] * s;
+    inner.style.transform = 'translate(' + pinch.tx + 'px,' + pinch.ty + 'px) scale(' + s + ')';
+  }
+  view.addEventListener('touchstart', function (e) {
+    if (e.touches.length === 2 && session && NotenEdit.pages().length) {
+      if (e.cancelable) e.preventDefault();
+      NotenEdit.cancelTouch(); lastTap = null;
+      var c = mid(e.touches), r = inner.getBoundingClientRect();
+      pinch = { d0: dist(e.touches), z0: zoom, z: zoom, c: c, p: [c[0] - r.left, c[1] - r.top], tx: 0, ty: 0, anchor: anchorAt(c[0], c[1]) };
+      inner.style.transformOrigin = '0 0'; inner.style.willChange = 'transform';
+    } else if (e.touches.length > 2 && pinch) pinchEnd();
+  }, { passive: false });
+  view.addEventListener('touchmove', function (e) {
+    if (!pinch || e.touches.length < 2) return;
+    if (e.cancelable) e.preventDefault();
+    pinch.z = clampZoom(pinch.z0 * dist(e.touches) / pinch.d0); pinch.c = mid(e.touches);
+    pinchDraw();
+  }, { passive: false });
+  function pinchEnd() {
+    if (!pinch) return;
+    var p = pinch; pinch = null;
+    inner.style.transform = ''; inner.style.willChange = '';
+    setZoom(p.z, p.c[0], p.c[1], p.anchor);
+  }
+  view.addEventListener('touchend', function (e) { if (pinch && e.touches.length < 2) pinchEnd(); });
+  view.addEventListener('touchcancel', function () { pinchEnd(); });
+  // Doppeltippen: an dieser Stelle vergrößern, noch einmal: wieder die ganze Seite. (Der erste Tipp hat evtl. einen Fingersatz ausgewählt: wieder abwählen.)
+  var down = null;
+  view.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'touch') return;
+    if (e.isPrimary) down = { x: e.clientX, y: e.clientY, id: e.pointerId }; else { down = null; lastTap = null; }
+  });
+  view.addEventListener('pointerup', function (e) {
+    if (e.pointerType !== 'touch') return;
+    var d = down; down = null;
+    if (!d || d.id !== e.pointerId || pinch || !session || Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) >= 12) { lastTap = null; return; }
+    var el = e.target, inPop = !!(el.closest && el.closest('.noten-pop')) && !NotenEdit.guarded();
+    if (!inPop && lastTap && e.timeStamp - lastTap.ts < 350 && Math.abs(e.clientX - lastTap.x) + Math.abs(e.clientY - lastTap.y) < 30) {
+      lastTap = null;
+      NotenEdit.deselect();
+      setZoom(zoom > 1.2 ? 1 : 2.5, e.clientX, e.clientY);
+    } else lastTap = inPop ? null : { ts: e.timeStamp, x: e.clientX, y: e.clientY };
+  });
+  view.addEventListener('pointercancel', function (e) { if (e.pointerType === 'touch') { down = null; lastTap = null; } });
+  // Safari: die ganze App soll sich dabei nicht mitvergrößern
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (n) { view.addEventListener(n, function (e) { e.preventDefault(); }); });
+  // am Rechner: Strg + Mausrad (oder Zwei-Finger-Geste auf dem Touchpad) vergrößert an der Stelle des Mauszeigers
+  view.addEventListener('wheel', function (e) {
+    if (!e.ctrlKey || !session) return;
+    e.preventDefault();
+    setZoom(zoom * Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.01)), e.clientX, e.clientY);
+  }, { passive: false });
 
   function load(files) {
     if (!files || !files.length || busy) return;
@@ -3160,15 +3430,18 @@ var NotenEdit = (function () {
     NotenEdit.close();
     name = files.length > 1 ? files[0].name.replace(/\.[a-z0-9]{2,5}$/i, '') + ' und ' + (files.length - 1) + ' weitere' : files[0].name;
     $('noten-result').hidden = true;
-    $('noten-pages').textContent = '';
+    inner.textContent = ''; inner.style.transform = ''; pinch = null;
     $('noten-drop').classList.add('busy');
     NotenPdf.app.prepare(files, function (t) { status(t); }).then(function (sess) { session = sess; show(); }, fail)
       .then(function () { busy = false; $('noten-drop').classList.remove('busy'); });
   }
 
   NotenEdit.init({ add: $('noten-add'), undo: $('noten-undo'), reset: $('noten-reset'), onChange: writePdf });
-  $('noten-zoom-out').addEventListener('click', function () { zoomBy(-1); });
-  $('noten-zoom-in').addEventListener('click', function () { zoomBy(1); });
+  $('noten-zoom-out').addEventListener('click', function () { setZoom(zoom / 1.5 < 1.15 ? 1 : zoom / 1.5); });
+  $('noten-zoom-in').addEventListener('click', function () { setZoom(zoom * 1.5); });
+  // gewählte Größe der Fingersätze merken
+  try { var keep = localStorage.getItem('fingerzeig-groesse'); if (keep && NotenPdf.SIZES[keep]) $('noten-size').value = keep; } catch (e) {}
+  $('noten-size').addEventListener('change', function () { try { localStorage.setItem('fingerzeig-groesse', this.value); } catch (e) {} });
   // Auf Handy und Tablet öffnet „Speichern" das Teilen-Menü (In Dateien sichern, GoodNotes, Drucken ...)
   $('noten-save').addEventListener('click', function (e) {
     if (!TOUCH || !saved || !navigator.canShare || typeof File !== 'function') return;
@@ -3178,7 +3451,7 @@ var NotenEdit = (function () {
     navigator.share({ files: [file], title: saved.file }).catch(function (err) { if (err && err.name !== 'AbortError') window.location.href = url; });
   });
   $('noten-file').addEventListener('change', function () { var f = Array.prototype.slice.call(this.files); this.value = ''; load(f); });
-  ['noten-open', 'noten-every', 'noten-strip'].forEach(function (id) { $(id).addEventListener('change', show); });
+  ['noten-open', 'noten-every', 'noten-strip', 'noten-size'].forEach(function (id) { $(id).addEventListener('change', show); });
   var drop = $('noten-drop');
   ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
   ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
@@ -3191,7 +3464,15 @@ var NotenEdit = (function () {
 
 <script>
 // Offline-Speicher: nach dem ersten Öffnen läuft die App ohne Internet
-if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+if ('serviceWorker' in navigator) window.addEventListener('load', function () {
+  var had = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').then(function (reg) { reg.update().catch(function () {}); }).catch(function () {});
+  // Neue Fassung geladen: gleich anzeigen, solange noch kein Notenblatt offen ist (sonst beim nächsten Start)
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    var r = document.getElementById('noten-result'), busy = document.querySelector('.noten-drop.busy');
+    if (had && !busy && (!r || r.hidden)) { had = false; location.reload(); }
+  });
+});
 </script>
 </body>
 </html>
